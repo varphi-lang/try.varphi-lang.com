@@ -2,17 +2,9 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Varphi Turing Machine Simulator</title>
+  <title>Varphi Sandbox</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1">
-<script>
-if (window.self !== window.top) {
-    document.body.style.width = "100%";
-    document.body.style.paddingTop = "0px";
-    
-    document.getElementById("machine_title").style.display = "none";
-}
-</script>
-  <!-- External Libraries -->
+
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/semantic.min.js"></script>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/semantic.min.css" type="text/css" rel="stylesheet" >
@@ -35,15 +27,16 @@ if (window.self !== window.top) {
     #machine_grid { width: inherit; padding-left: 15px; padding-right: 15px; }
     #speed_bar { background: #2980b9; }
     #speed_column { margin-top: 10px; }
-    #container { margin-top: 20px; padding-left: 0px; }
+    #container { margin-top: 20px; padding-left: 0px; position: relative; } /* Added position relative for absolute button placement */
     #machine_segment { padding: 10px 0px 0px 0px; }
     .ui.header.accept { margin-top: 0px; }
-    .CodeMirror { height: 400px; border: 1px solid #ddd; border-radius: 4px; }
+    .CodeMirror { height: 400px; border: 1px solid #ddd; border-bottom: none; }
     .cm-highlight-line { background-color: #ffdd33 !important; }
   </style>
 </head>
 <body>
 
+<!-- This is the main machine section (displayed post-compile) -->
 <div class="ui segments" id="machine" style="display:none;">
   <div class="ui center aligned grey segment">
     <h2 class="ui header" id="machine_title">Varphi Simulation</h2>
@@ -68,7 +61,7 @@ if (window.self !== window.top) {
     <div class="ui centered stackable grid">
       <div class="six wide center aligned column">
         <div class="ui labeled input fluid" style="margin-bottom: 10px;">
-          <div class="ui label">Blank Char (Default: space)</div>
+          <div class="ui label">Blank Character (Default: space)</div>
           <input type="text" id="blank_char_input" value=" " maxlength="1">
         </div>
         <div id="dynamic_tapes_container"></div>
@@ -98,13 +91,47 @@ if (window.self !== window.top) {
   <div id="log"></div>
 </div>
 
+<!-- Editor -->
 <div class="ui centered stackable grid">
   <div class="sixteen wide column">
-    <div class="ui segment" style="padding:0" id="editor_container">
-      <textarea id="code_editor"></textarea>
-      <button id="loader" class="ui bottom attached green fluid button disabled">
-        <i class="circle notch loading icon"></i> Initializing Varphi Compiler...
-      </button>
+    <div id="editor_container">
+      
+      <!-- Drop down for example programs -->
+      <div class="ui top attached menu">
+        <div class="ui dropdown item">
+          <i class="file code icon"></i> Load Example
+          <i class="dropdown icon"></i>
+          <div class="menu">
+            <div class="item" data-value="an_bn_cn.vp">an_bn_cn.vp</div>
+            <div class="item" data-value="an_bn_cn_multiplied.vp">an_bn_cn_multiplied.vp</div>
+            <div class="item" data-value="binary_addition.vp">binary_addition.vp</div>
+            <div class="item" data-value="binary_increment.vp">binary_increment.vp</div>
+            <div class="item" data-value="busy_beaver_4.vp">busy_beaver_4.vp</div>
+            <div class="item" data-value="divisible_by_3_binary.vp">divisible_by_3_binary.vp</div>
+            <div class="item" data-value="divisible_by_3_decimal.vp">divisible_by_3_decimal.vp</div>
+            <div class="item" data-value="duplicate_string.vp">duplicate_string.vp</div>
+            <div class="item" data-value="even_zeros.vp">even_zeros.vp</div>
+            <div class="item" data-value="morse_code.vp">morse_code.vp</div>
+            <div class="item" data-value="palindrome.vp">palindrome.vp</div>
+            <div class="item" data-value="power_of_two.vp">power_of_two.vp</div>
+            <div class="item" data-value="turing_sequence.vp">turing_sequence.vp</div>
+            <div class="item" data-value="unary_multiplication.vp">unary_multiplication.vp</div>
+            <div class="item" data-value="w_hash_w.vp">w_hash_w.vp</div>
+          </div>
+        </div>
+        <div class="right menu">
+          <a class="item" href="https://docs.varphi-lang.com/" target="_blank">
+            <i class="book icon"></i> Varphi Docs
+          </a>
+        </div>
+      </div>
+
+      <div class="ui attached segment" style="padding:0">
+        <textarea id="code_editor"></textarea>
+        <button id="loader" class="ui bottom attached green fluid button disabled">
+          <i class="circle notch loading icon"></i> Initializing Varphi Compiler...
+        </button>
+      </div>
     </div>
   </div>
 </div>
@@ -135,11 +162,9 @@ function cinta(pos_y, n_cells, sq_size) {
         var middle = Math.floor(this.n_cells / 2);
         
         for (var b = 0; b < this.n_cells; b++) {
-            // Find where this cell sits relative to the head's position in the string
             var string_idx = tapeData.head_position + (b - middle);
             var char = blankChar;
             
-            // If the calculated index falls inside our string length, grab the character
             if (string_idx >= 0 && string_idx < tapeData.string.length) {
                 char = tapeData.string.charAt(string_idx);
             }
@@ -153,6 +178,7 @@ function cinta(pos_y, n_cells, sq_size) {
 let pyodide, session;
 let myCodeMirror, stage, layer;
 let tapes = [];
+let current_tape_data = []; // Added to track current tape contents for copying
 let n_tapes = 1;
 let total_width, sq_size, ncells;
 let step_counter = 0;
@@ -167,7 +193,8 @@ $(document).ready(function() {
     myCodeMirror = CodeMirror.fromTextArea(document.getElementById('code_editor'), {
         mode: "text/html", lineNumbers: true
     });
-    myCodeMirror.setValue("// Start writing Varphi code here...\ns0 (a) s1 (b) (RIGHT)");
+    // Initialize the editor with an echo vp program
+    myCodeMirror.setValue("// Start writing Varphi code here...\ns0 ($x) s0 ($x) (RIGHT)\ns0 (BLANK) s1 (BLANK) (STAY)");
 
     total_width = document.body.offsetWidth > 1080 ? document.getElementById('editor_container').offsetWidth : document.body.offsetWidth * 0.9;
     ncells = document.body.offsetWidth > 720 ? 25 : 17;
@@ -181,10 +208,37 @@ $(document).ready(function() {
         start: [50], step: 1, range: { 'min': 0, 'max': 100 }, connect: "lower",
     });
     speed_bar.noUiSlider.on('slide', function() {
-        trans_speed = (100 - speed_bar.noUiSlider.get()) * 15; 
+        let val = parseInt(speed_bar.noUiSlider.get());
+        // If the bar is all the way right (ie 100), make speed 0 for asap execution
+        trans_speed = val === 100 ? 0 : (100 - val) * 15; 
     });
 
     $('.message .close').on('click', function() { $(this).closest('.message').slideUp(250); });
+
+    // Init the dropdown
+    $('.ui.dropdown').dropdown({
+        onChange: function(value) {
+            if (!value) return;
+            const url = `https://raw.githubusercontent.com/varphi-lang/examples/refs/heads/main/${value}`;
+            
+            const $loader = $('#loader');
+            const originalText = $loader.html();
+            $loader.addClass('disabled').html('<i class="circle notch loading icon"></i> Fetching Example...');
+            
+            $.get(url).done(function(data) {
+                myCodeMirror.setValue(data);
+                if (session) {
+                    $loader.removeClass('disabled').html('Compile Varphi');
+                    $loader.click(); // Compile once the user clicks an example vp program
+                } else {
+                    $loader.html('<i class="circle notch loading icon"></i> Initializing Varphi Compiler...');
+                }
+            }).fail(function() {
+                showError("Failed to fetch example from GitHub.");
+                if (session) $loader.removeClass('disabled').html('Compile Varphi');
+            });
+        }
+    });
 });
 
 
@@ -293,6 +347,8 @@ function stepMachine() {
 }
 
 function updateUI(data, blankChar) {
+    current_tape_data = data.tapes; // Store data globally for copying
+
     $('#state_text').text("State: " + data.state);
     
     for (let i = 0; i < n_tapes; i++) {
@@ -338,6 +394,8 @@ function loadStage() {
     stage.clear();
     layer.destroyChildren();
     
+    $('#container').find('.tape-copy-btn').remove(); 
+    
     sq_size = total_width / (ncells - 2);
     let total_height = Math.floor(1.6 * sq_size * n_tapes + sq_size / 2);
     stage.setHeight(total_height);
@@ -357,10 +415,29 @@ function loadStage() {
         layer.add(tapes[j].get_square_group());
         layer.add(poly); 
         layer.add(tapes[j].get_symbol_group());
+
+        // Inject new copy buttons per-tape
+        let btn = $(`<button class="ui mini icon button tape-copy-btn" style="position: absolute; right: 10px; z-index: 10;" title="Copy Tape ${j+1} Contents"><i class="copy icon"></i></button>`);
+        btn.css('top', ((1.6 * j + 0.33) * sq_size) + (sq_size - 28)/2 + 'px'); 
+        btn.click(function() { window.copyTape(j, this); });
+        $('#container').append(btn);
     }
     stage.add(layer);
     layer.draw();
 }
+
+window.copyTape = function(index, btnElement) {
+    if (current_tape_data && current_tape_data[index]) {
+        const text = current_tape_data[index].string;
+        navigator.clipboard.writeText(text).then(() => {
+            let icon = $(btnElement).find('i');
+            icon.removeClass('copy').addClass('check green');
+            setTimeout(() => { icon.removeClass('check green').addClass('copy'); }, 1500);
+        }).catch(err => {
+            console.error('Failed to copy: ', err);
+        });
+    }
+};
 
 function enableButtons() {
     $("#play, #step").removeClass('disabled');
@@ -373,7 +450,6 @@ function showError(msg) {
     $("#log").html(msg);
     $("#log_container").slideDown();
 }
-
 
 initPyodideEnv();
 </script>
