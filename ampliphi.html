@@ -1,0 +1,236 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Ampliphi-to-Varphi Online Compiler</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1">
+  
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/semantic.min.js"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/semantic.min.css" type="text/css" rel="stylesheet">
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.js"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.css" type="text/css" rel="stylesheet">
+  
+  <script src="https://cdn.jsdelivr.net/pyodide/v0.26.1/full/pyodide.js"></script>
+
+  <style>
+    body { width: 75%; margin-right: auto; margin-left: auto; padding-top: 20px; font-family: sans-serif; }
+    @media (max-width: 1000px){ body { width: 90%; } }
+    #editor_container, #output_container { margin-left: auto; margin-right: auto; width: 70%; }
+    @media (max-width: 1080px){ #editor_container, #output_container { width: 100%; } }
+    .CodeMirror { height: 350px; border: 1px solid #ddd; border-bottom: none; font-size: 14px; }
+    .output-segment { position: relative; margin-top: 20px; display: none; }
+  </style>
+</head>
+<body>
+
+  <h1 class="ui center aligned header" style="margin-top: 10px; margin-bottom: 25px;">Ampliphi-to-Varphi Online Compiler</h1>
+
+  <div class="ui negative message" style="display: none;" id="log_container">
+    <i class="close icon"></i>
+    <div id="log"></div>
+  </div>
+
+  <div class="ui centered stackable grid">
+    <div class="sixteen wide column">
+      <div id="editor_container">
+        
+        <div class="ui top attached menu">
+          <div class="ui dropdown item">
+            <i class="file code icon"></i> Load Example
+            <i class="dropdown icon"></i>
+            <div class="scrolling menu">
+              <div class="item" data-value="abs_diff">abs_diff</div>
+              <div class="item" data-value="add">add</div>
+              <div class="item" data-value="and">and</div>
+              <div class="item" data-value="eq">eq</div>
+              <div class="item" data-value="gt">gt</div>
+              <div class="item" data-value="index_complex">index_complex</div>
+              <div class="item" data-value="index_complex_loop">index_complex_loop</div>
+              <div class="item" data-value="index_complex_sum">index_complex_sum</div>
+              <div class="item" data-value="index_complex_write">index_complex_write</div>
+              <div class="item" data-value="index_procedure">index_procedure</div>
+              <div class="item" data-value="index_reverse_array">index_reverse_array</div>
+              <div class="item" data-value="index_simple">index_simple</div>
+              <div class="item" data-value="index_simple_write">index_simple_write</div>
+              <div class="item" data-value="jump_if_false">jump_if_false</div>
+              <div class="item" data-value="load_bool">load_bool</div>
+              <div class="item" data-value="load_int">load_int</div>
+              <div class="item" data-value="lt">lt</div>
+              <div class="item" data-value="max">max</div>
+              <div class="item" data-value="multiple_calls">multiple_calls</div>
+              <div class="item" data-value="multiply">multiply</div>
+              <div class="item" data-value="nested_calls">nested_calls</div>
+              <div class="item" data-value="not">not</div>
+              <div class="item" data-value="opt_array_folding">opt_array_folding</div>
+              <div class="item" data-value="opt_complex_loop">opt_complex_loop</div>
+              <div class="item" data-value="opt_constant_folding">opt_constant_folding</div>
+              <div class="item" data-value="opt_dead_code">opt_dead_code</div>
+              <div class="item" data-value="opt_if_true_false">opt_if_true_false</div>
+              <div class="item" data-value="opt_temp_reduction">opt_temp_reduction</div>
+              <div class="item" data-value="opt_while_false">opt_while_false</div>
+              <div class="item" data-value="or">or</div>
+              <div class="item" data-value="reassign_variable">reassign_variable</div>
+              <div class="item" data-value="simple_call">simple_call</div>
+              <div class="item" data-value="sub">sub</div>
+            </div>
+          </div>
+          <div class="right menu">
+            <a class="item" href="https://docs.varphi-lang.com/ampliphi" target="_blank">
+              <i class="book icon"></i> Ampliphi Docs
+            </a>
+          </div>
+        </div>
+
+        <div class="ui attached segment" style="padding:0">
+          <textarea id="code_editor"></textarea>
+          <button id="loader" class="ui bottom attached green fluid button disabled">
+            <i class="circle notch loading icon"></i> Initializing Ampliphi Compiler...
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <div class="ui centered stackable grid output-segment" id="output_segment">
+    <div class="sixteen wide column">
+      <div id="output_container">
+        <div class="ui top attached segment grey inverted">
+          <h4 class="ui inverted header" style="margin: 0;">Compiled Varphi Output</h4>
+          <button class="ui mini icon button" id="copy_varphi" style="position: absolute; right: 10px; top: 8px; z-index: 10;" title="Copy Varphi Code">
+            <i class="copy icon"></i>
+          </button>
+        </div>
+        <div class="ui attached segment" style="padding:0">
+          <textarea id="varphi_output"></textarea>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+let pyodide;
+let ampliphiEditor, varphiEditor;
+
+$(document).ready(function() {
+  ampliphiEditor = CodeMirror.fromTextArea(document.getElementById('code_editor'), {
+    mode: "text/x-csrc",
+    lineNumbers: true,
+    indentUnit: 4
+  });
+
+  varphiEditor = CodeMirror.fromTextArea(document.getElementById('varphi_output'), {
+    mode: "text/plain",
+    lineNumbers: true,
+    readOnly: true
+  });
+
+  $('.ui.dropdown').dropdown({
+    onChange: function(value) {
+      if (!value) return;
+      const url = `https://raw.githubusercontent.com/varphi-lang/ampliphi/main/tests/end_to_end_tests/${value}/test.aphi`;
+      const $loader = $('#loader');
+      $loader.addClass('disabled').html('<i class="circle notch loading icon"></i> Fetching Example...');
+
+      $.get(url).done(function(data) {
+        ampliphiEditor.setValue(data);
+        if (pyodide) {
+          $loader.removeClass('disabled').html('Compile to Varphi');
+          $loader.click();
+        } else {
+          $loader.html('<i class="circle notch loading icon"></i> Initializing Ampliphi Compiler...');
+        }
+      }).fail(function() {
+        showError("Failed to fetch example from GitHub.");
+        if (pyodide) $loader.removeClass('disabled').html('Compile to Varphi');
+      });
+    }
+  });
+
+  $('.message .close').on('click', function() {
+    $(this).closest('.message').slideUp(250);
+  });
+
+  $('#copy_varphi').click(function() {
+    const text = varphiEditor.getValue();
+    navigator.clipboard.writeText(text).then(() => {
+      let icon = $(this).find('i');
+      icon.removeClass('copy').addClass('check green');
+      setTimeout(() => { icon.removeClass('check green').addClass('copy'); }, 1500);
+    }).catch(err => {
+      console.error('Failed to copy Varphi code: ', err);
+    });
+  });
+
+  $('#loader').click(function() {
+    if ($(this).hasClass('disabled')) return;
+    $('#log_container').slideUp();
+    
+    const code = ampliphiEditor.getValue();
+    try {
+      const resJson = pyodide.runPython(`compile_code(${JSON.stringify(code)})`);
+      const result = JSON.parse(resJson);
+
+      if (result.success) {
+        varphiEditor.setValue(result.varphi);
+        $('#output_segment').slideDown();
+        setTimeout(() => { varphiEditor.refresh(); }, 50);
+      } else {
+        showError("<strong>Compilation Error</strong>:<br>" + result.error.replace(/\n/g, '<br>'));
+      }
+    } catch (err) {
+      showError("<strong>Execution Error</strong>: " + err);
+    }
+  });
+
+  $.get("https://raw.githubusercontent.com/varphi-lang/ampliphi/main/tests/end_to_end_tests/abs_diff/test.aphi")
+    .done(function(data) {
+      ampliphiEditor.setValue(data);
+    });
+
+  initPyodideEnv();
+});
+
+async function initPyodideEnv() {
+  try {
+    pyodide = await loadPyodide();
+    await pyodide.loadPackage("micropip");
+    const micropip = pyodide.pyimport("micropip");
+    
+    await micropip.install(["ampliphi"]);
+
+    pyodide.runPython(`
+      import json
+      from ampliphi.utils import get_ast, typecheck_ast, get_ir, get_varphi
+
+      def compile_code(source_code, optimize=True):
+          try:
+              ast = get_ast(source_code)
+              typecheck_ast(source_code, ast)
+              ir = get_ir(ast, optimize)
+              varphi_code = get_varphi(ir)
+              return json.dumps({"success": True, "varphi": varphi_code})
+          except Exception as e:
+              return json.dumps({"success": False, "error": str(e)})
+    `);
+
+    const $loader = $('#loader');
+    if (!$loader.hasClass('red')) {
+      $loader.removeClass('disabled').html('Compile to Varphi');
+    }
+  } catch (err) {
+    $('#loader').addClass('red disabled').text('Failed to load Python environment');
+    showError("Failed to initialize Pyodide and Ampliphi package: " + err);
+  }
+}
+
+function showError(msg) {
+  $("#log").html(msg);
+  $("#log_container").slideDown();
+}
+</script>
+
+</body>
+</html>
