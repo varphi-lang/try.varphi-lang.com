@@ -4,485 +4,218 @@
   <meta charset="UTF-8" />
   <title>Online Turing Machine Simulator</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1">
-
-  <!-- To boost our search results :) -->
-  <meta name="description" content="The ultimate online Turing Machine Simulator and Varphi sandbox. Easily design, simulate, step through, and test multi-tape Turing machines and formal computation models in your browser.">
-  <meta name="keywords" content="Turing machine simulator, online turing machine, multi-tape turing machine, Varphi sandbox, computability simulator, finite state machine, automata simulator">
-  <link rel="canonical" href="https://varphi-lang.com/">
+  <meta name="description" content="The ultimate online Turing machine simulator. Easily design, simulate, step through, and test multi-tape Turing machines and formal computation models in your browser.">
+  <meta name="keywords" content="Turing machine simulator, online turing machine, multi-tape turing machine, computability simulator, finite state machine, automata simulator">
+  <link rel="canonical" href="https://try.varphi-lang.com/">
   <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/varphi-lang/.github/main/profile/assets/VarphiLogo.png">
 
-  <meta property="og:title" content="Online Turing Machine Simulator & Varphi Sandbox">
-  <meta property="og:description" content="The ultimate online Turing Machine Simulator. Design, simulate, step through, and test multi-tape Turing machines interactively in your browser.">
+  <meta property="og:title" content="Online Turing Machine Simulator">
+  <meta property="og:description" content="The ultimate online Turing machine simulator. Easily design, simulate, step through, and test multi-tape Turing machines and formal computation models in your browser.">
   <meta property="og:type" content="website">
   <meta property="og:image" content="https://raw.githubusercontent.com/varphi-lang/.github/main/profile/assets/VarphiLogo.png">
 
   <meta name="twitter:card" content="summary">
-  <meta name="twitter:title" content="Online Turing Machine Simulator & Varphi Sandbox">
-  <meta name="twitter:description" content="The ultimate online Turing Machine Simulator. Design, simulate, step through, and test multi-tape Turing machines interactively in your browser.">
+  <meta name="twitter:title" content="Online Turing Machine Simulator">
+  <meta name="twitter:description" content="The ultimate online Turing machine simulator. Easily design, simulate, step through, and test multi-tape Turing machines and formal computation models in your browser.">
   <meta name="twitter:image" content="https://raw.githubusercontent.com/varphi-lang/.github/main/profile/assets/VarphiLogo.png">
+
+  <link rel="preconnect" href="https://cdnjs.cloudflare.com">
+  <link rel="preconnect" href="https://cdn.jsdelivr.net">
+  <link rel="preconnect" href="https://code.jquery.com">
 
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
-    "@type": "SoftwareApplication",
-    "name": "Varphi Turing Machine Simulator",
-    "operatingSystem": "All",
-    "applicationCategory": "EducationalApplication",
-    "description": "An interactive online multi-tape Turing Machine simulator and Varphi development environment.",
-    "offers": {
-      "@type": "Offer",
-      "price": "0"
-    }
+    "@graph": [
+      {
+        "@type": "SoftwareApplication",
+        "name": "Varphi Turing Machine Simulator",
+        "operatingSystem": "Web",
+        "applicationCategory": "EducationalApplication",
+        "description": "An interactive online multi-tape Turing machine simulator.",
+        "url": "https://try.varphi-lang.com/",
+        "offers": { "@type": "Offer", "price": "0" }
+      },
+      {
+        "@type": "WebPage",
+        "name": "Online Turing Machine Simulator",
+        "description": "Design, simulate, and step through multi-tape Turing machines interactively in your browser."
+      }
+    ]
   }
   </script>
 
-  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/semantic.min.js"></script>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/semantic.min.css" type="text/css" rel="stylesheet" >
-  
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.js"></script>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.css" type="text/css" rel="stylesheet" >
-  
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.0/nouislider.min.js"></script>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.0/nouislider.min.css" type="text/css" rel="stylesheet" >
-  
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/kineticjs/5.2.0/kinetic.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/pyodide/v0.26.1/full/pyodide.js"></script>
+  <link href="style.css" type="text/css" rel="stylesheet">
 
-  <style>
-    body { width: 75%; margin-right: auto; margin-left: auto; padding-top: 20px; }
-    @media (max-width: 1000px){ body { width: 90%; } }
-    #editor_container { margin-left: auto; margin-right: auto; width: 70%; }
-    @media (max-width: 1080px){ #editor_container { width: 100%; } }
-    #machine_grid > div.column { height:10px!important; }
-    #machine_grid { width: inherit; padding-left: 15px; padding-right: 15px; }
-    #speed_bar { background: #2980b9; }
-    #speed_column { margin-top: 10px; }
-    #container { margin-top: 20px; padding-left: 0px; position: relative; } /* Added position relative for absolute button placement */
-    #machine_segment { padding: 10px 0px 0px 0px; }
-    .ui.header.accept { margin-top: 0px; }
-    .CodeMirror { height: 400px; border: 1px solid #ddd; border-bottom: none; }
-    .cm-highlight-line { background-color: #ffdd33 !important; }
-  </style>
+  <script defer src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/semantic.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.0/nouislider.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/kineticjs/5.2.0/kinetic.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/pyodide/v0.26.1/full/pyodide.js"></script>
+  <script defer src="app.js"></script>
 </head>
 <body>
 
-<!-- This is the main machine section (displayed post-compile) -->
-<div class="ui segments" id="machine" style="display:none;">
-  <div class="ui center aligned grey segment">
-    <h2 class="ui header" id="machine_title">Varphi Simulation</h2>
-  </div>
+  <header style="text-align: center; margin: 30px 0;">
+    <h1 class="ui header">Online Turing Machine Simulator</h1>
+    <p>Design, step-through, and debug multi-tape Turing machines directly in your browser.</p>
+  </header>
   
-  <div class="ui segment" id="machine_segment">
-    <div class="ui center aligned stackable grid" id="machine_grid">
-      <div class="five wide center aligned column">
-        <h4 class="ui header" id="counter_text">Steps: 0</h4>
-      </div>
-      <div class="six wide center aligned column" id="state_text_container">
-        <h4 class="ui header" id="state_text">State: None</h4>
-      </div>
-      <div class="five wide center aligned column">
-        <h4 class="ui green header accept" id="halted_text" style="display:none;">Halted</h4>
-      </div>
-    </div>
-    <div id="container"></div>
-  </div>
-
-  <div class="ui segment">
-    <div class="ui centered stackable grid">
-      <div class="six wide center aligned column">
-        <div class="ui labeled input fluid" style="margin-bottom: 10px;">
-          <div class="ui label">Blank Character (Default: space)</div>
-          <input type="text" id="blank_char_input" value=" " maxlength="1">
+  <main>
+    <section id="simulator-app" aria-label="Turing Machine Simulator Interface">
+      <!-- The main machine section (displayed post-compile) -->
+      <div class="ui segments" id="machine" style="display:none;">
+        <div class="ui center aligned grey segment">
+          <h2 class="ui header" id="machine_title">Simulation</h2>
         </div>
-        <div id="dynamic_tapes_container"></div>
-        <button class="ui fluid button blue" id="load_input">Initialize Tapes</button>
-      </div>
-
-      <div class="four wide center aligned column">
-        <div class="ui big icon buttons">
-          <button class="ui button disabled" id="play"><i class="play icon"></i></button>
-          <button class="ui button disabled" id="pause"><i class="pause icon"></i></button>
-          <button class="ui button disabled" id="step"><i class="step forward icon"></i></button>
+        
+        <div class="ui segment" id="machine_segment">
+          <div class="ui center aligned stackable grid" id="machine_grid">
+            <div class="five wide center aligned column">
+              <h4 class="ui header" id="counter_text">Steps: 0</h4>
+            </div>
+            <div class="six wide center aligned column" id="state_text_container">
+              <h4 class="ui header" id="state_text">State: None</h4>
+            </div>
+            <div class="five wide center aligned column">
+              <h4 class="ui green header accept" id="halted_text" style="display:none;">Halted</h4>
+            </div>
+          </div>
+          <div id="container"></div>
         </div>
-      </div>      
-      
-      <div class="six wide center aligned column" id="speed_column">
-        <div class="ui grid">
-          <div class="four wide column"><h3 class="ui header">Speed:</h3></div>
-          <div class="eleven wide center aligned column"><div id="speed_bar"></div></div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
 
-<div class="ui negative message" style="display: none;" id="log_container">
-  <i class="close icon"></i>
-  <div id="log"></div>
-</div>
+        <div class="ui segment">
+          <div class="ui centered stackable grid">
+            <div class="six wide center aligned column">
+              <div class="ui labeled input fluid" style="margin-bottom: 10px;">
+                <div class="ui label">Blank Character (Default: space)</div>
+                <input type="text" id="blank_char_input" value=" " maxlength="1" aria-label="Blank Character Input">
+              </div>
+              <div id="dynamic_tapes_container"></div>
+              <button class="ui fluid button blue" id="load_input">Initialize Tapes</button>
+            </div>
 
-<!-- Editor -->
-<div class="ui centered stackable grid">
-  <div class="sixteen wide column">
-    <div id="editor_container">
-      
-      <!-- Drop down for example programs -->
-      <div class="ui top attached menu">
-        <div class="ui dropdown item">
-          <i class="file code icon"></i> Load Example
-          <i class="dropdown icon"></i>
-          <div class="menu">
-            <div class="item" data-value="an_bn_cn.vp">an_bn_cn.vp</div>
-            <div class="item" data-value="an_bn_cn_multiplied.vp">an_bn_cn_multiplied.vp</div>
-            <div class="item" data-value="binary_addition.vp">binary_addition.vp</div>
-            <div class="item" data-value="binary_increment.vp">binary_increment.vp</div>
-            <div class="item" data-value="busy_beaver_4.vp">busy_beaver_4.vp</div>
-            <div class="item" data-value="divisible_by_3_binary.vp">divisible_by_3_binary.vp</div>
-            <div class="item" data-value="divisible_by_3_decimal.vp">divisible_by_3_decimal.vp</div>
-            <div class="item" data-value="duplicate_string.vp">duplicate_string.vp</div>
-            <div class="item" data-value="even_zeros.vp">even_zeros.vp</div>
-            <div class="item" data-value="morse_code.vp">morse_code.vp</div>
-            <div class="item" data-value="palindrome.vp">palindrome.vp</div>
-            <div class="item" data-value="power_of_two.vp">power_of_two.vp</div>
-            <div class="item" data-value="turing_sequence.vp">turing_sequence.vp</div>
-            <div class="item" data-value="unary_multiplication.vp">unary_multiplication.vp</div>
-            <div class="item" data-value="w_hash_w.vp">w_hash_w.vp</div>
+            <div class="four wide center aligned column">
+              <div class="ui big icon buttons">
+                <button class="ui button disabled" id="play" aria-label="Play Simulation" title="Play"><i class="play icon"></i></button>
+                <button class="ui button disabled" id="pause" aria-label="Pause Simulation" title="Pause"><i class="pause icon"></i></button>
+                <button class="ui button disabled" id="step" aria-label="Step Forward" title="Step"><i class="step forward icon"></i></button>
+              </div>
+            </div>      
+            
+            <div class="six wide center aligned column" id="speed_column">
+              <div class="ui grid">
+                <div class="four wide column"><h3 class="ui header">Speed:</h3></div>
+                <div class="eleven wide center aligned column"><div id="speed_bar"></div></div>
+              </div>
+            </div>
           </div>
         </div>
-        <div class="right menu">
-          <a class="item" href="https://docs.varphi-lang.com/" target="_blank">
-            <i class="book icon"></i> Varphi Docs
-          </a>
+      </div>
+
+      <div class="ui negative message" style="display: none;" id="log_container">
+        <i class="close icon"></i>
+        <div id="log"></div>
+      </div>
+
+      <!-- Editor -->
+      <div class="ui centered stackable grid">
+        <div class="sixteen wide column">
+          <div id="editor_container">
+            
+            <!-- Drop down for example programs -->
+            <div class="ui top attached menu">
+              <div class="ui dropdown item">
+                <i class="file code icon"></i> Load Example
+                <i class="dropdown icon"></i>
+                <div class="menu">
+                  <div class="item" data-value="an_bn_cn.vp">an_bn_cn.vp</div>
+                  <div class="item" data-value="an_bn_cn_multiplied.vp">an_bn_cn_multiplied.vp</div>
+                  <div class="item" data-value="binary_addition.vp">binary_addition.vp</div>
+                  <div class="item" data-value="binary_increment.vp">binary_increment.vp</div>
+                  <div class="item" data-value="busy_beaver_4.vp">busy_beaver_4.vp</div>
+                  <div class="item" data-value="divisible_by_3_binary.vp">divisible_by_3_binary.vp</div>
+                  <div class="item" data-value="divisible_by_3_decimal.vp">divisible_by_3_decimal.vp</div>
+                  <div class="item" data-value="duplicate_string.vp">duplicate_string.vp</div>
+                  <div class="item" data-value="even_zeros.vp">even_zeros.vp</div>
+                  <div class="item" data-value="morse_code.vp">morse_code.vp</div>
+                  <div class="item" data-value="palindrome.vp">palindrome.vp</div>
+                  <div class="item" data-value="power_of_two.vp">power_of_two.vp</div>
+                  <div class="item" data-value="turing_sequence.vp">turing_sequence.vp</div>
+                  <div class="item" data-value="unary_multiplication.vp">unary_multiplication.vp</div>
+                  <div class="item" data-value="w_hash_w.vp">w_hash_w.vp</div>
+                </div>
+              </div>
+              <div class="right menu">
+                <a class="item" href="https://docs.varphi-lang.com/" target="_blank" rel="noopener noreferrer">
+                  <i class="book icon"></i> Varphi Docs
+                </a>
+              </div>
+            </div>
+
+            <div class="ui attached segment" style="padding:0">
+              <textarea id="code_editor" aria-label="Varphi Code Editor"></textarea>
+              <button id="loader" class="ui bottom attached green fluid button disabled">
+                <i class="circle notch loading icon"></i> Initializing Varphi Compiler...
+              </button>
+            </div>
+          </div>
         </div>
       </div>
+    </section>
 
-      <div class="ui attached segment" style="padding:0">
-        <textarea id="code_editor"></textarea>
-        <button id="loader" class="ui bottom attached green fluid button disabled">
-          <i class="circle notch loading icon"></i> Initializing Varphi Compiler...
-        </button>
+    <article id="seo-content" class="ui segment" style="margin-top: 40px; padding: 30px;">
+      <h2>How to Use This Turing Machine Simulator</h2>
+      <p>This sandbox allows you to write, compile, and visualize formal computation models using Varphi, a description language for Turing machines.</p>
+      
+      <h3>Features of this simulator:</h3>
+      <ul>
+        <li><strong>Multi-Tape Support:</strong> Simulate machines with an arbitrary number of tapes effortlessly. The compiler automatically adjusts the UI for the number of tapes.</li>
+        <li><strong>Step-by-Step Execution:</strong> Pause, step, and inspect tape heads to debug state transitions and algorithmic logic.</li>
+        <li><strong>Pre-built Examples:</strong> Instantly load classic algorithms written in Varphi, like binary addition, the busy beaver, and palindrome checkers.</li>
+      </ul>
+
+      <h2>What is a Turing Machine?</h2>
+      <p>Invented by Alan Turing in 1936, a Turing machine is a foundational mathematical model of computation. It consists of an infinite tape divided into discrete cells, a head that reads and writes symbols, and a finite set of states dictating its actions based on a transition function. Despite its simplicity, it is capable of simulating the logic of any computer algorithm!</p>
+
+      <h2>Frequently Asked Questions</h2>
+      <div itemscope itemtype="https://schema.org/FAQPage">
+        <div itemprop="mainEntity" itemscope itemtype="https://schema.org/Question">
+          <h3 itemprop="name">Where can I read more about Varphi?</h3>
+          <div itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+            <p itemprop="text">Complete documentation on Varphi is available <a href="https://docs.varphi-lang.com/">here.</a></p>
+          </div>
+        </div>
+        <div itemprop="mainEntity" itemscope itemtype="https://schema.org/Question">
+          <h3 itemprop="name">Can this simulator handle multi-tape Turing machines?</h3>
+          <div itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+            <p itemprop="text">Yes! The Varphi compiler automatically detects the required tapes based on your source code and generates the multi-tape user interface accordingly.</p>
+          </div>
+        </div>
+        <div itemprop="mainEntity" itemscope itemtype="https://schema.org/Question">
+          <h3 itemprop="name">Does the computation run in the browser or on a server?</h3>
+          <div itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+            <p itemprop="text">It runs 100% in your browser. The Varphi compilation and simulation happen locally on your machine, ensuring zero latency and complete privacy.</p>
+          </div>
+        </div>
       </div>
+    </article>
+  </main>
+
+  <footer style="margin-top: 50px; padding-bottom: 50px; text-align: center;">
+    <h4>Popular Turing Machine Examples</h4>
+    <div class="ui horizontal list">
+      <div class="item"><a href="?example=binary_addition">Binary Addition</a></div>
+      <div class="item"><a href="?example=busy_beaver_4">Busy Beaver (4-State)</a></div>
+      <div class="item"><a href="?example=palindrome">Palindrome Checker</a></div>
+      <div class="item"><a href="?example=turing_sequence">Turing Sequence</a></div>
+      <div class="item"><a href="?example=morse_code">Morse Code</a></div>
     </div>
-  </div>
-</div>
+  </footer>
 
-<script>
-
-function letter_box(sq_size, pos_x, pos_y){
-    this.square = new Kinetic.Rect({ x: pos_x, y: pos_y, width: sq_size, height: sq_size, fill: "#428bca", stroke: 'white' });
-    this.symbol = new Kinetic.Text({ x: pos_x, y: pos_y + sq_size/6, fill: "white", text: "", fontSize: 2 * sq_size/3, fontFamily: 'Helvetica', height: sq_size, width: sq_size, align: 'center' });
-}
-
-function cinta(pos_y, n_cells, sq_size) {
-    this.n_cells = n_cells;
-    this.sq_size = sq_size;
-    this.square_group = new Kinetic.Group({});
-    this.symbol_group = new Kinetic.Group({});
-
-    for(var i = 0; i < n_cells; i++){
-        var l_box = new letter_box(sq_size, sq_size * (i-1), pos_y);
-        this.symbol_group.add(l_box.symbol);
-        this.square_group.add(l_box.square);
-    }
-
-    this.get_square_group = function() { return this.square_group; }
-    this.get_symbol_group = function() { return this.symbol_group; }
-
-    this.sync = function(tapeData, blankChar) {
-        var middle = Math.floor(this.n_cells / 2);
-        
-        for (var b = 0; b < this.n_cells; b++) {
-            var string_idx = tapeData.head_position + (b - middle);
-            var char = blankChar;
-            
-            if (string_idx >= 0 && string_idx < tapeData.string.length) {
-                char = tapeData.string.charAt(string_idx);
-            }
-            
-            this.symbol_group.getChildren()[b].setText(char);
-        }
-    }
-}
-
-
-let pyodide, session;
-let myCodeMirror, stage, layer;
-let tapes = [];
-let current_tape_data = []; // Added to track current tape contents for copying
-let n_tapes = 1;
-let total_width, sq_size, ncells;
-let step_counter = 0;
-let playInterval;
-let pause = true;
-let trans_speed = 1000;
-let input_loaded = false;
-let currentHighlight = null;
-
-
-$(document).ready(function() {
-    myCodeMirror = CodeMirror.fromTextArea(document.getElementById('code_editor'), {
-        mode: "text/html", lineNumbers: true
-    });
-    // Initialize the editor with an echo vp program
-    myCodeMirror.setValue("// Start writing Varphi code here...\ns0 ($x) s0 ($x) (RIGHT)\ns0 (BLANK) s1 (BLANK) (STAY)");
-
-    total_width = document.body.offsetWidth > 1080 ? document.getElementById('editor_container').offsetWidth : document.body.offsetWidth * 0.9;
-    ncells = document.body.offsetWidth > 720 ? 25 : 17;
-
-    stage = new Kinetic.Stage({ container: "container", width: total_width, height: 0 });
-    layer = new Kinetic.Layer();
-    stage.add(layer);
-
-    let speed_bar = document.getElementById('speed_bar');
-    noUiSlider.create(speed_bar, {
-        start: [50], step: 1, range: { 'min': 0, 'max': 100 }, connect: "lower",
-    });
-    speed_bar.noUiSlider.on('slide', function() {
-        let val = parseInt(speed_bar.noUiSlider.get());
-        // If the bar is all the way right (ie 100), make speed 0 for asap execution
-        trans_speed = val === 100 ? 0 : (100 - val) * 15; 
-    });
-
-    $('.message .close').on('click', function() { $(this).closest('.message').slideUp(250); });
-
-    // Init the dropdown
-    $('.ui.dropdown').dropdown({
-        onChange: function(value) {
-            if (!value) return;
-            const url = `https://raw.githubusercontent.com/varphi-lang/examples/refs/heads/main/${value}`;
-            
-            const $loader = $('#loader');
-            const originalText = $loader.html();
-            $loader.addClass('disabled').html('<i class="circle notch loading icon"></i> Fetching Example...');
-            
-            $.get(url).done(function(data) {
-                myCodeMirror.setValue(data);
-                if (session) {
-                    $loader.removeClass('disabled').html('Compile Varphi');
-                    $loader.click(); // Compile once the user clicks an example vp program
-                } else {
-                    $loader.html('<i class="circle notch loading icon"></i> Initializing Varphi Compiler...');
-                }
-            }).fail(function() {
-                showError("Failed to fetch example from GitHub.");
-                if (session) $loader.removeClass('disabled').html('Compile Varphi');
-            });
-        }
-    });
-});
-
-
-async function initPyodideEnv() {
-    try {
-        pyodide = await loadPyodide();
-        await pyodide.loadPackage("micropip");
-        const micropip = pyodide.pyimport("micropip");
-        
-        await micropip.install(["vp2web"]);
-        
-        pyodide.runPython("from vp2web import session");
-        session = pyodide.globals.get("session");
-        
-        $('#loader').removeClass('disabled').html('Compile Varphi');
-    } catch (err) {
-        $('#loader').addClass('red disabled').text('Failed to load Pyodide');
-        showError("Failed to initialize python environment: " + err);
-    }
-}
-
-
-$('#loader').click(function() {
-    $('#log_container').slideUp();
-    const code = myCodeMirror.getValue();
-    const result = JSON.parse(session.compile(code));
-
-    if (result.success) {
-        n_tapes = result.k;
-        let inputsHtml = "";
-        for (let i = 0; i < n_tapes; i++) {
-            inputsHtml += `<div class="ui fluid input" style="margin-bottom: 5px;">
-                <input type="text" id="tape_input_${i}" placeholder="Tape ${i+1} Initial Value (Leave empty for BLANK)">
-            </div>`;
-        }
-        $('#dynamic_tapes_container').html(inputsHtml);
-        
-        $('#machine').slideDown();
-        loadStage();
-    } else {
-        showError("<strong>Compilation Error</strong>: " + result.error);
-    }
-});
-
-
-$('#load_input').click(function() {
-    const blankChar = $('#blank_char_input').val() || " ";
-    let inputs = [];
-    for (let i = 0; i < n_tapes; i++) {
-        inputs.push($(`#tape_input_${i}`).val() || "");
-    }
-    
-    const pyInputs = pyodide.toPy(inputs);
-    const result = JSON.parse(session.init_machine(pyInputs, blankChar));
-    pyInputs.destroy();
-
-    if (result.error) {
-        showError(result.error);
-        return;
-    }
-
-    input_loaded = true;
-    step_counter = 0;
-    $('#counter_text').text("Steps: 0");
-    $('#halted_text').hide();
-    
-    enableButtons();
-    updateUI(result, blankChar);
-});
-
-
-$('#play').click(function() {
-    if (!input_loaded || !pause) return;
-    pause = false;
-    $('#play').addClass('disabled');
-    $('#pause').removeClass('disabled');
-    
-    function loop() {
-        if (pause) return;
-        stepMachine();
-        setTimeout(loop, trans_speed);
-    }
-    setTimeout(loop, 0);
-});
-
-$('#pause').click(function() {
-    pause = true;
-    $('#play').removeClass('disabled');
-    $('#pause').addClass('disabled');
-});
-
-$('#step').click(function() {
-    if (!input_loaded) return;
-    pause = true;
-    $('#play').removeClass('disabled');
-    $('#pause').addClass('disabled');
-    stepMachine();
-});
-
-
-function stepMachine() {
-    const result = JSON.parse(session.step());
-    step_counter++;
-    $('#counter_text').text("Steps: " + step_counter);
-    updateUI(result, $('#blank_char_input').val() || " ");
-}
-
-function updateUI(data, blankChar) {
-    current_tape_data = data.tapes; // Store data globally for copying
-
-    $('#state_text').text("State: " + data.state);
-    
-    for (let i = 0; i < n_tapes; i++) {
-        tapes[i].sync(data.tapes[i], blankChar);
-    }
-    layer.draw();
-
-    
-    if (currentHighlight !== null) {
-        try {
-            myCodeMirror.removeLineClass(currentHighlight, 'background', 'cm-highlight-line');
-        } catch (e) {
-            
-        }
-        currentHighlight = null;
-    }
-    
-    
-    if (data.line_number !== null && data.line_number !== undefined) {
-        let lineIdx = data.line_number - 1; 
-        
-        
-        if (lineIdx >= 0 && lineIdx < myCodeMirror.lineCount()) {
-            
-            currentHighlight = myCodeMirror.addLineClass(lineIdx, 'background', 'cm-highlight-line');
-            
-            
-            let localCoords = myCodeMirror.charCoords({line: lineIdx, ch: 0}, "local");
-            let halfEditorHeight = myCodeMirror.getScrollerElement().offsetHeight / 2;
-            myCodeMirror.scrollTo(null, localCoords.top - halfEditorHeight);
-        }
-    }
-
-    if (data.halted) {
-        pause = true;
-        disableButtons();
-        $('#halted_text').text("Halted at " + data.state).show();
-    }
-}
-
-
-function loadStage() {
-    stage.clear();
-    layer.destroyChildren();
-    
-    $('#container').find('.tape-copy-btn').remove(); 
-    
-    sq_size = total_width / (ncells - 2);
-    let total_height = Math.floor(1.6 * sq_size * n_tapes + sq_size / 2);
-    stage.setHeight(total_height);
-    
-    tapes = [];
-    let pos_x = total_width / 2;
-
-    for(let j = 0; j < n_tapes; j++) {
-        
-        tapes[j] = new cinta((1.6 * j + 0.33) * sq_size, ncells, sq_size);
-        let pos_y = (1.6 * j + 1.33) * sq_size - sq_size/6;
-        
-        let poly = new Kinetic.RegularPolygon({
-          x: pos_x, y: pos_y + 2*sq_size/5, sides: 3, radius: sq_size/3, fill: "#000", stroke: "#fff", strokeWidth: 2
-        });
-        
-        layer.add(tapes[j].get_square_group());
-        layer.add(poly); 
-        layer.add(tapes[j].get_symbol_group());
-
-        // Inject new copy buttons per-tape
-        let btn = $(`<button class="ui mini icon button tape-copy-btn" style="position: absolute; right: 10px; z-index: 10;" title="Copy Tape ${j+1} Contents"><i class="copy icon"></i></button>`);
-        btn.css('top', ((1.6 * j + 0.33) * sq_size) + (sq_size - 28)/2 + 'px'); 
-        btn.click(function() { window.copyTape(j, this); });
-        $('#container').append(btn);
-    }
-    stage.add(layer);
-    layer.draw();
-}
-
-window.copyTape = function(index, btnElement) {
-    if (current_tape_data && current_tape_data[index]) {
-        const text = current_tape_data[index].string;
-        navigator.clipboard.writeText(text).then(() => {
-            let icon = $(btnElement).find('i');
-            icon.removeClass('copy').addClass('check green');
-            setTimeout(() => { icon.removeClass('check green').addClass('copy'); }, 1500);
-        }).catch(err => {
-            console.error('Failed to copy: ', err);
-        });
-    }
-};
-
-function enableButtons() {
-    $("#play, #step").removeClass('disabled');
-    $("#pause").addClass('disabled');
-}
-function disableButtons() {
-    $("#play, #pause, #step").addClass('disabled');
-}
-function showError(msg) {
-    $("#log").html(msg);
-    $("#log_container").slideDown();
-}
-
-initPyodideEnv();
-</script>
 </body>
 </html>
